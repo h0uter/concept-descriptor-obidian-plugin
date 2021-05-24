@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { App, Modal, Notice, Plugin, PluginSettingTab, Setting, MarkdownView } from 'obsidian';
 
 interface MyPluginSettings {
 	mySetting: string;
@@ -40,6 +40,25 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
+		this.addCommand({
+			id: 'get-page-modal',
+			name: 'get page Modal',
+			// callback: () => {
+			// 	console.log('Simple Callback');
+			// },
+			checkCallback: (checking: boolean) => {
+				let leaf = this.app.workspace.activeLeaf;
+				if (leaf) {
+					if (!checking) {
+						// new SampleModal(this.app).open();
+						this.getContent()
+					}
+					return true;
+				}
+				return false;
+			}
+		});
+
 		this.addSettingTab(new SampleSettingTab(this.app, this));
 
 		this.registerCodeMirror((cm: CodeMirror.Editor) => {
@@ -47,7 +66,9 @@ export default class MyPlugin extends Plugin {
 		});
 
 		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
+			// console.log('click', evt);
+			var result = this.getContent()
+			console.log(result)
 		});
 
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
@@ -64,6 +85,28 @@ export default class MyPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+
+	getContent() {
+		
+		// const activeLeaf = this.app.workspace.activeLeaf ?? null;
+		// const source = activeLeaf.view.sourceMode;
+		// const source = activeLeaf.view.getDisplayText()
+		// const source = this.app.workspace.getActiveViewOfType(MarkdownView)
+		// console.log(source.sourceMode)
+		let activeLeaf = this.app.workspace.activeLeaf;
+
+		if (!activeLeaf || !(activeLeaf.view instanceof MarkdownView)) {
+			return;
+		}
+
+		let editor = activeLeaf.view.sourceMode;
+		const sourceContent = editor.get();
+
+		new Notice(sourceContent);
+
+		return sourceContent
+	}
+
 }
 
 class SampleModal extends Modal {
