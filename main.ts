@@ -67,8 +67,7 @@ export default class MyPlugin extends Plugin {
 
 		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
 			// console.log('click', evt);
-			var result = this.getContent()
-			console.log(result)
+			this.getContent()
 		});
 
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
@@ -86,25 +85,22 @@ export default class MyPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
+	// WOUTER: this function gets the content of whatever leaf is active
 	getContent() {
-		
-		// const activeLeaf = this.app.workspace.activeLeaf ?? null;
-		// const source = activeLeaf.view.sourceMode;
-		// const source = activeLeaf.view.getDisplayText()
-		// const source = this.app.workspace.getActiveViewOfType(MarkdownView)
-		// console.log(source.sourceMode)
 		let activeLeaf = this.app.workspace.activeLeaf;
 
+		// so you need this this statement to force the typescript compiler 
+		// to know our view has to be of the rigth type. TYPESCRIPT IS QUITE STRICT.
 		if (!activeLeaf || !(activeLeaf.view instanceof MarkdownView)) {
 			return;
 		}
 
+		// here we actually .get() the content of the  editor
 		let editor = activeLeaf.view.sourceMode;
 		const sourceContent = editor.get();
 
 		new Notice(sourceContent);
-
-		return sourceContent
+		console.log(sourceContent)
 	}
 
 }
