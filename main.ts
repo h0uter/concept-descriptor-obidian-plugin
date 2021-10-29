@@ -67,7 +67,8 @@ export default class MyPlugin extends Plugin {
 
 		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
 			// console.log('click', evt);
-			this.getContent()
+			// this.getContent()
+			this.processContent()
 		});
 
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
@@ -85,7 +86,37 @@ export default class MyPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	// WOUTER: this function gets the content of whatever leaf is active
+	processContent() {
+		// let content = this.getContent()
+		let content = this.getCurrentLineContent()
+		const regex = /(?<=(-\s))[A-Z].{1,}(?=::)/;
+		// const regex = /(?<=(-\s))[A-Z][^::]*/;
+		let match = regex.exec(content)
+		// new Notice(match[0]);
+		let modified_line = content.replace(regex, '**' + match[0] + '::**')
+		new Notice(modified_line);
+
+		const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+		const doc = editor.getDoc()
+		const curLineNum = doc.getCursor().line
+
+		const lineContent = doc.setLine(curLineNum, modified_line)
+	// }
+	}
+
+
+	getCurrentLineContent() {
+		// const doc = this.app.workspace.activeLeaf.view.sourceMode.cmEditor.doc
+		const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+		const doc = editor.getDoc()
+		const curLineNum = doc.getCursor().line
+
+		const lineContent = doc.getLine(curLineNum).trim()
+		return lineContent
+
+	}
+
+	// WOUTER: this function gets the  content of whatever leaf is active
 	getContent() {
 		let activeLeaf = this.app.workspace.activeLeaf;
 
@@ -96,12 +127,16 @@ export default class MyPlugin extends Plugin {
 		}
 
 		// here we actually .get() the content of the  editor
-		let editor = activeLeaf.view.sourceMode;
-		const sourceContent = editor.get();
+		// let editor = activeLeaf.view.;
+		const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
+		const sourceContent = editor.getValue();
+		// const sourceContent = editor.;
 
-		new Notice(sourceContent);
-		console.log(sourceContent)
+		// new Notice(sourceContent);
+		// console.log(sourceContent)
+		return sourceContent
 	}
+
 
 }
 
