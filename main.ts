@@ -51,7 +51,7 @@ export default class MyPlugin extends Plugin {
 				if (leaf) {
 					if (!checking) {
 						// new SampleModal(this.app).open();
-						this.getContent()
+						// this.getContent()
 					}
 					return true;
 				}
@@ -100,7 +100,7 @@ export default class MyPlugin extends Plugin {
 		const doc = editor.getDoc()
 		const curLineNum = doc.getCursor().line
 
-		const lineContent = doc.setLine(curLineNum, modified_line)
+		doc.setLine(curLineNum, modified_line)
 	// }
 	}
 
@@ -115,28 +115,6 @@ export default class MyPlugin extends Plugin {
 		return lineContent
 
 	}
-
-	// WOUTER: this function gets the  content of whatever leaf is active
-	getContent() {
-		let activeLeaf = this.app.workspace.activeLeaf;
-
-		// so you need this this statement to force the typescript compiler 
-		// to know our view has to be of the rigth type. TYPESCRIPT IS QUITE STRICT.
-		if (!activeLeaf || !(activeLeaf.view instanceof MarkdownView)) {
-			return;
-		}
-
-		// here we actually .get() the content of the  editor
-		// let editor = activeLeaf.view.;
-		const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
-		const sourceContent = editor.getValue();
-		// const sourceContent = editor.;
-
-		// new Notice(sourceContent);
-		// console.log(sourceContent)
-		return sourceContent
-	}
-
 
 }
 
