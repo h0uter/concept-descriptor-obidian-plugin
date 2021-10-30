@@ -16,62 +16,7 @@ export default class MyPlugin extends Plugin {
 
 		await this.loadSettings();
 
-		this.addRibbonIcon('dice', 'Sample Plugin', () => {
-			new Notice('This is a notice!');
-		});
-
-		this.addStatusBarItem().setText('Status Bar Text');
-
-		this.addCommand({
-			id: 'open-sample-modal',
-			name: 'Open Sample Modal',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
-			checkCallback: (checking: boolean) => {
-				let leaf = this.app.workspace.activeLeaf;
-				if (leaf) {
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-					return true;
-				}
-				return false;
-			}
-		});
-
-		this.addCommand({
-			id: 'get-page-modal',
-			name: 'get page Modal',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
-			checkCallback: (checking: boolean) => {
-				let leaf = this.app.workspace.activeLeaf;
-				if (leaf) {
-					if (!checking) {
-						// new SampleModal(this.app).open();
-						// this.getContent()
-					}
-					return true;
-				}
-				return false;
-			}
-		});
-
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		this.registerCodeMirror((cm: CodeMirror.Editor) => {
-			console.log('codemirror', cm);
-		});
-
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			// console.log('click', evt);
-			// this.getContent()
-			this.processContent()
-		});
-
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		this.registerInterval(window.setInterval(() => this.matchSubstrings(), 0.2 * 1000));
 	}
 
 	onunload() {
@@ -86,79 +31,45 @@ export default class MyPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	processContent() {
-		// let content = this.getContent()
+	matchSubstrings() {
 		let content = this.getCurrentLineContent()
-		const regex = /(?<=(-\s))[A-Z].{1,}(?=::)/;
-		// const regex = /(?<=(-\s))[A-Z][^::]*/;
-		let match = regex.exec(content)
-		// new Notice(match[0]);
-		let modified_line = content.replace(regex, '**' + match[0] + '::**')
-		new Notice(modified_line);
+		const regexConcept = /(?<=(-\s))[A-Z].{1,}(?<=::)/;
+		const regexDescriptor = /(?<=(-\s))[a-z].{1,}(?<=::)/;
 
 		const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
 		const doc = editor.getDoc()
 		const curLineNum = doc.getCursor().line
+		let match
+		let modified_line
+		
+		switch (content) {
+			case content.match(regexConcept)?.input:
+				console.log("matched a concept")
+				new Notice("matched a Concept");
+
+				match = regexConcept.exec(content)
+				modified_line = content.replace(regexConcept, '**' + match[0] + '**')
+				break
+				
+			case content.match(regexDescriptor)?.input:
+				console.log("matched a descriptor")
+				new Notice("matched a descriptor");
+				
+				match = regexDescriptor.exec(content)
+				modified_line = content.replace(regexDescriptor, '*' + match[0] + '*')
+				break
+		}
 
 		doc.setLine(curLineNum, modified_line)
-	// }
-	}
+		}
 
 
 	getCurrentLineContent() {
-		// const doc = this.app.workspace.activeLeaf.view.sourceMode.cmEditor.doc
 		const editor = this.app.workspace.getActiveViewOfType(MarkdownView)?.editor;
 		const doc = editor.getDoc()
 		const curLineNum = doc.getCursor().line
 
 		const lineContent = doc.getLine(curLineNum).trim()
 		return lineContent
-
-	}
-
-}
-
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
-
-	onOpen() {
-		let {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		let {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		let {containerEl} = this;
-
-		containerEl.empty();
-
-		containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
-
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue('')
-				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
 	}
 }
